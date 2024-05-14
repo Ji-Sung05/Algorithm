@@ -1,41 +1,33 @@
 const input = require('fs').readFileSync('/dev/stdin').toString().trim().split('\n');
 
 let [nm, s, ...rest] = input;
-const [n, m] = nm.split(' ').map((v) => +v);
+const [n, m] = nm.split(' ').map(v => +v);
 const start = +s;
-const arr = rest.map((str) => str.split(' ').map((v) => +v));
-
+const arr = rest.map((str) => str.split(' ').map(v => +v));
 let d = [...Array(n + 1).fill(Infinity)];
 
-class PriorityQueue {
+class MinHeap {
   constructor() {
     this.heap = [];
   }
-
-  empty() {
+  is_empty() {
     return this.heap.length === 0;
   }
-
-  peek() {
-    return this.heap[0];
-  }
-
-  push(data) {
-    this.heap.push(data);
-
+  push(value) {
+    this.heap.push(value);
     let i = this.heap.length - 1;
-    while (i > 0) {
-      const parent = ~~((i - 1) / 2);
-      if (this.heap[parent] <= this.heap[i]) break;
+    while(i > 0) {
+      let parent = ~~((i - 1) / 2);
+      if(this.heap[parent] <= this.heap[i]) break;
       [this.heap[i], this.heap[parent]] = [this.heap[parent], this.heap[i]];
       i = parent;
     }
   }
 
   pop() {
-    if (this.empty()) return;
+    if (this.is_empty()) return;
 
-    const value = this.peek();
+    const value = this.heap[0];
     [this.heap[0], this.heap[this.heap.length - 1]] = [
       this.heap[this.heap.length - 1],
       this.heap[0],
@@ -46,7 +38,7 @@ class PriorityQueue {
   }
 
   _heapify() {
-    const x = this.peek();
+    const x = this.heap[0];
     const n = this.heap.length;
     let cur = 0;
 
@@ -79,16 +71,18 @@ function solution(n, m, start, arr) {
   }
 
   const dijkstra = (start) => {
-    const pq = new PriorityQueue();
-    pq.push([0, start]);
+    //시작 노드 초기화
+    const pq = new MinHeap();
+    pq.push([0, start]); //[거리, 노드]
     d[start] = 0;
 
-    while (!pq.empty()) {
-      const [dist, cur] = pq.pop();
+    while (!pq.is_empty()) {
+      const [dist, cur] = pq.pop(); //현재 최단 거리가 가장 짧은 노드
 
+      //최단 거리가 아닌 경우(방문한 적이 있는 경우) 스킵
       if (d[cur] < dist) continue;
 
-      for (const i of graph[cur]) {
+      for (const i of graph[cur]) { //인접 노드 탐색
         const node = i[0];
         const cost = dist + i[1];
         if (cost < d[node]) {
