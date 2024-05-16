@@ -1,100 +1,96 @@
 const input = require('fs').readFileSync('/dev/stdin').toString().trim().split('\n');
 
 let [nm, s, ...rest] = input;
-const [n, m] = nm.split(' ').map(v => +v);
+const [n, m] = nm.split(' ').map((v) => +v);
 const start = +s;
-const arr = rest.map((str) => str.split(' ').map(v => +v));
-let d = [...Array(n + 1).fill(Infinity)];
+const arr = rest.map((str) => str.split(' ').map((v) => +v));
+
+const graph = Array.from({ length: n + 1 }, () => []);
+arr.forEach(([src, dest, cost]) => {
+  graph[src].push([dest, cost]);
+});
+
+let d = [...new Array(n + 1).fill(Infinity)];
 
 class MinHeap {
   constructor() {
-    this.heap = [];
-  }
-  is_empty() {
-    return this.heap.length === 0;
+    this.heap = [null];
   }
   push(value) {
     this.heap.push(value);
-    let i = this.heap.length - 1;
-    while(i > 0) {
-      let parent = ~~((i - 1) / 2);
-      if(this.heap[parent] <= this.heap[i]) break;
-      [this.heap[i], this.heap[parent]] = [this.heap[parent], this.heap[i]];
-      i = parent;
+
+    let currentIndex = this.heap.length - 1;
+    let parentIndex = Math.floor(currentIndex / 2);
+
+    while(parentIndex !== 0 && this.heap[parentIndex].cost > value.cost) {
+      this._swap(parentIndex, currentIndex);
+      currentIndex = parentIndex;
+      parentIndex = Math.floor(currentIndex / 2);
     }
   }
-
   pop() {
     if (this.is_empty()) return;
+    if (this.heap.length === 2) return this.heap.pop();
 
-    const value = this.heap[0];
-    [this.heap[0], this.heap[this.heap.length - 1]] = [
-      this.heap[this.heap.length - 1],
-      this.heap[0],
-    ];
-    this.heap.pop();
-    this._heapify();
-    return value;
+    const returnValue = this.heap[1];
+    this.heap[1] = this.heap.pop();
+
+    let currentIndex  = 1;
+    let leftIndex = 2;
+    let rightIndex = 3;
+
+    while ((this.heap[leftIndex] && this.heap[currentIndex].cost > this.heap[leftIndex].cost) || 
+      (this.heap[rightIndex] && this.heap[currentIndex].cost > this.heap[rightIndex].cost)) {
+      if (this.heap[leftIndex] === undefined) {
+        this._swap(rightIndex, currentIndex)
+        currentIndex = rightIndex;
+      } else if (this.heap[rightIndex] === undefined) { 
+        this._swap(leftIndex, currentIndex)
+        currentIndex = leftIndex;
+      } else if (this.heap[leftIndex].cost > this.heap[rightIndex].cost) {
+        this._swap(rightIndex, currentIndex)
+        currentIndex = rightIndex;
+      } else if (this.heap[leftIndex].cost <= this.heap[rightIndex].cost) {
+        this._swap(leftIndex, currentIndex)
+        currentIndex = leftIndex;
+      }
+      leftIndex = currentIndex * 2;
+      rightIndex = currentIndex * 2 + 1;
+    }
+    return returnValue;
   }
 
-  _heapify() {
-    const x = this.heap[0];
-    const n = this.heap.length;
-    let cur = 0;
-
-    while (2 * cur + 1 < n) {
-      const leftChild = 2 * cur + 1;
-      const rightChild = leftChild + 1;
-      const smallerChild =
-        rightChild < n && this.heap[rightChild] < this.heap[leftChild]
-          ? rightChild
-          : leftChild;
-
-      if (x > this.heap[smallerChild]) {
-        [this.heap[cur], this.heap[smallerChild]] = [
-          this.heap[smallerChild],
-          this.heap[cur],
-        ];
-        cur = smallerChild;
-      } else {
-        break;
-      }
-    }
+  is_empty() {
+    return this.heap.length === 1;
+  }
+  _swap(a, b) {
+    [this.heap[a], this.heap[b]] = [this.heap[b], this.heap[a]];
   }
 }
 
-function solution(n, m, start, arr) {
-  const graph = Array.from(Array(n + 1), () => []);
-  for (const v of arr) {
-    const [a, b, c] = v;
-    graph[a].push([b, c]);
-  }
+function dijkstra(n, m, arr, start) {
+  const visited = Array.from({ length: n + 1 }, () => false);
+  const heap = new MinHeap();
 
-  const dijkstra = (start) => {
-    //시작 노드 초기화
-    const pq = new MinHeap();
-    pq.push([0, start]); //[거리, 노드]
-    d[start] = 0;
+  d[start] = 0;
+  heap.push({ node: start, cost: 0 });
 
-    while (!pq.is_empty()) {
-      const [dist, cur] = pq.pop(); //현재 최단 거리가 가장 짧은 노드
+  while (!heap.is_empty()) {
+    const { node: src, cost: currentCost } = heap.pop();
 
-      //최단 거리가 아닌 경우(방문한 적이 있는 경우) 스킵
-      if (d[cur] < dist) continue;
-
-      for (const i of graph[cur]) { //인접 노드 탐색
-        const node = i[0];
-        const cost = dist + i[1];
-        if (cost < d[node]) {
-          pq.push([cost, node]);
-          d[node] = cost;
-        }
+    for (const [dest, cost] of graph[src]) {
+      if (d[dest] > currentCost + cost) {
+        d[dest] = currentCost + cost;
+        heap.push({ node: dest, cost: d[dest] });
       }
     }
-  };
+  }
 
-  dijkstra(start);
+  return d;
+}
 
+function solution(n, m, arr, start) {
+  const d = dijkstra(n, m, arr, start);
   for (let i = 1; i <= n; i++) {
     if (d[i] === Infinity) {
       console.log('INF');
@@ -102,8 +98,6 @@ function solution(n, m, start, arr) {
       console.log(d[i]);
     }
   }
-
-  return d;
 }
 
-solution(n, m, start, arr);
+solution(n, m, arr, start);
