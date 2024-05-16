@@ -68,8 +68,7 @@ class MinHeap {
   }
 }
 
-function dijkstra(n, m, arr, start) {
-  const visited = Array.from({ length: n + 1 }, () => false);
+function dijkstra(start) {
   const heap = new MinHeap();
 
   d[start] = 0;
@@ -90,7 +89,7 @@ function dijkstra(n, m, arr, start) {
 }
 
 function solution(n, m, arr, start) {
-  const d = dijkstra(n, m, arr, start);
+  const d = dijkstra(start);
   for (let i = 1; i <= n; i++) {
     if (d[i] === Infinity) {
       console.log('INF');
