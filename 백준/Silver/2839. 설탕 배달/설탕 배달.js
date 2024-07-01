@@ -1,16 +1,15 @@
-const input = +require('fs').readFileSync('/dev/stdin').toString().trim();
-
-let result = -1;
+const input = +require('fs').readFileSync('/dev/stdin').toString().trim()
 
 let five = Math.floor(input / 5);
-while (five >= 0) {
-  const remain = input - five * 5;
-  if (remain % 3 === 0) {
-    result = remain / 3 + five;
+let answer = -1;
+
+while(five >= 0) {
+  let rest = input - five * 5;
+  if(rest % 3 === 0) {
+    answer = Math.floor(rest / 3) + five
     break;
-  } else {
-    five -= 1;
   }
+  five--;
 }
 
-console.log(result);
+console.log(answer);
