@@ -10,8 +10,18 @@ for(let i = 0; i < arr.length; i++) {
     d[j] += 1
   }
 }
-
-let one = d.filter(v => v === 1).length * a
-let two = d.filter(v => v === 2).length * b
-let three = d.filter(v => v === 3).length * c
-console.log(one + (two * 2) + (three * 3))
+let ans = 0
+d.forEach(v => {
+  switch(v) {
+    case 1:
+      ans += a
+      break
+    case 2:
+      ans += b * 2
+      break
+    case 3:
+      ans += c * 3
+      break
+  }
+})
+console.log(ans)
